@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VENSERVI · Agenda de mantenimiento recurrente</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05073d">
+<link rel="icon" href="img/logo-venservi.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: herramienta de trabajo de una empresa de saneamiento industrial: clara, firme, sin adornos.
+   IDEA: la pizarra de despacho de la flota: hoja de ruta del día con horas colgadas y fichas de cada camión.
+   PICTURE: la agenda misma, agrupada por día con horas grandes y estados de color.
+   COLOUR and TYPE: azul VENSERVI del logo, blanco, rojo del punto del logo como acento; Barlow Condensed en cursiva como el logo + Barlow.
+   LAYOUT: banda azul con navegación; agenda arriba; en celular tarjetas grandes y navegación desplazable. */
+:root{color-scheme:light dark;
+--bg:light-dark(#eef1f8,#0c0f2b);--panel:light-dark(#ffffff,#161a42);--ink:light-dark(#111432,#eceefa);--mute:light-dark(#555a7c,#a7abd0);
+--line:light-dark(#d8dcec,#2a2f63);--soft:light-dark(#e4e7f6,#20255a);--blue:#1f2c99;--navy:#05073d;--red:#e1251b;--acc:#2f7bff;--link:light-dark(#2e3192,#aeb3ff)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
+body.lock{overflow:hidden}
+a{color:var(--link)}
+h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;text-wrap:balance}
+h1{font-size:clamp(30px,4.4vw,46px)}h2{font-size:26px}h3{font-size:20px}
+.top{background:linear-gradient(118deg,#05073d 0 58%,#0c1263 58% 71%,#070a4a 71% 100%);color:#fff;position:sticky;top:0;z-index:20;box-shadow:0 3px 0 var(--acc)}
+.topin{max-width:1240px;margin:auto;display:flex;align-items:center;gap:14px;padding:10px max(3vw,14px);flex-wrap:wrap}
+.top img{height:46px;width:auto;display:block}
+.flag{display:inline-block;vertical-align:-2px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.emg{background:var(--red);color:#fff}
+.demo{font-size:13px;background:rgba(255,255,255,.14);padding:3px 10px;border-radius:99px;white-space:nowrap}
+.nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1 1 100%;order:3;padding-bottom:2px}
+.nav button{flex:none;background:none;border:0;color:#d7daf7;font:600 15px Barlow,sans-serif;padding:10px 14px;border-radius:8px;min-height:44px;cursor:pointer}
+.nav button[aria-current=page]{background:#fff;color:var(--navy)}
+.nav button:hover{color:#fff;background:rgba(255,255,255,.1)}
+.nav button[aria-current=page]:hover{color:var(--navy);background:#fff}
+main{max-width:1240px;margin:auto;padding:22px max(3vw,14px) 40px}
+.hero{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.hero p{margin:6px 0 0;color:var(--mute);max-width:62ch}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:600 15px Barlow,sans-serif;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 16px;border-radius:9px;min-height:44px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center;text-decoration:none}
+.btn:hover{border-color:var(--blue)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.emer{background:var(--red);border-color:var(--red);color:#fff}
+.bars .b{height:10px;border-radius:5px;background:var(--soft);overflow:hidden}.bars .b i{display:block;height:100%;background:var(--blue)}
+.bars>div{display:grid;grid-template-columns:150px minmax(0,1fr) 70px;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+.btn.pri:hover{background:var(--navy)}
+.btn.red{border-color:#c7362e;color:light-dark(#b0241c,#ff8a83)}
+.btn.sm{min-height:38px;padding:6px 12px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #6f74ff;outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;font:inherit;color:inherit;min-height:44px}
+.kpi b{display:block;font:italic 800 34px/1 "Barlow Condensed",sans-serif}
+.kpi span{color:var(--mute);font-size:14px}
+.kpi.on{border-color:var(--blue);box-shadow:inset 0 0 0 1.5px var(--blue)}
+.kpi.bad b{color:var(--red)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 10px}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;font:600 14px Barlow,sans-serif;color:var(--mute);padding:8px 14px;border-radius:8px;min-height:38px;cursor:pointer}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.filters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:14px}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--mute)}
+select,input,textarea{font:16px Barlow,sans-serif;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:9px 10px;min-height:44px;width:100%}
+textarea{min-height:84px;resize:vertical}
+.day{margin:18px 0 6px;display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--line);padding-bottom:4px}
+.day b{font:italic 800 22px "Barlow Condensed",sans-serif}
+.day span{color:var(--mute);font-size:14px}
+.day.today b{color:var(--blue)}
+.vrow{display:grid;grid-template-columns:84px minmax(0,1.5fr) minmax(0,1.4fr) 140px auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--sc,#999);border-radius:10px;padding:10px 12px;margin-top:8px}
+.vrow .tm{font:italic 800 26px/1 "Barlow Condensed",sans-serif;white-space:nowrap}
+.vrow b{display:block}.vrow small{display:block;color:var(--mute);font-size:14px}
+.pill{display:inline-block;font-size:13px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap;background:var(--pb);color:var(--pc)}
+.st-pc{--sc:#e0a100;--pb:light-dark(#fff1c9,#4a3a05);--pc:light-dark(#7a5600,#ffd96b)}
+.st-co{--sc:#2e3192;--pb:light-dark(#dfe2ff,#272c78);--pc:light-dark(#232677,#c9ccff)}
+.st-re{--sc:#1f8a4c;--pb:light-dark(#d6f3e1,#123d26);--pc:light-dark(#11603a,#8fe3b2)}
+.st-rp{--sc:#7a3fb8;--pb:light-dark(#efe2fb,#381d57);--pc:light-dark(#5b2a92,#d8b8fb)}
+.st-ca{--sc:#888;--pb:light-dark(#e7e7ea,#33333d);--pc:light-dark(#4b4b55,#c8c8d2)}
+.st-ve{--sc:#e1251b;--pb:light-dark(#ffdcd9,#4d1512);--pc:light-dark(#a11a12,#ff9d96)}
+.st-ok{--sc:#1f8a4c;--pb:light-dark(#d6f3e1,#123d26);--pc:light-dark(#11603a,#8fe3b2)}
+.st-ta{--sc:#d9660b;--pb:light-dark(#ffe6d0,#4a2709);--pc:light-dark(#8f4100,#ffbf86)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.muted{color:var(--mute)}
+.small{font-size:14px}
+.empty{padding:28px;text-align:center;color:var(--mute);background:var(--panel);border:1.5px dashed var(--line);border-radius:12px}
+.warn{background:light-dark(#fff1c9,#4a3a05);color:light-dark(#6b4b00,#ffe08f);border-radius:8px;padding:8px 12px;font-size:14px;font-weight:600}
+.warn:empty{display:none}
+.note{background:var(--soft);border-radius:10px;padding:10px 14px;font-size:14px;margin:10px 0}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .h{font-size:13px;font-weight:700;color:var(--mute);text-align:center;padding:4px}
+.cell{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-height:104px;padding:4px;display:flex;flex-direction:column;gap:3px}
+.cell.out{opacity:.45}.cell.today{border:2px solid var(--blue)}
+.cell .n{font-size:13px;font-weight:700}
+.ev{font-size:12px;line-height:1.25;border:0;text-align:left;background:var(--pb);color:var(--pc);border-radius:5px;padding:3px 5px;cursor:pointer;font-family:Barlow,sans-serif;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;width:100%}
+.ev.tal{--pb:light-dark(#ffe6d0,#4a2709);--pc:light-dark(#8f4100,#ffbf86)}
+.calnav{display:flex;align-items:center;gap:10px}
+.calnav b{font:italic 800 22px "Barlow Condensed",sans-serif;min-width:170px;text-align:center}
+table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:15px}
+th{font-size:13px;color:var(--mute);background:var(--soft)}
+tr.off td{opacity:.55}
+.grp{margin:22px 0 8px}
+.kv{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 12px;font-size:15px;margin:10px 0}
+.kv dt{color:var(--mute);font-weight:600}.kv dd{margin:0}
+#md{position:fixed;inset:0;background:rgba(8,10,35,.55);z-index:50;display:grid;place-items:center;padding:16px}
+#md[hidden]{display:none}
+.mbox{background:var(--panel);border-radius:14px;width:min(620px,100%);max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.mbox.wide{width:min(860px,100%)}
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+.x{border:0;background:var(--soft);color:var(--ink);font-size:24px;width:44px;height:44px;border-radius:10px;cursor:pointer}
+.mbody{padding:16px 18px 20px}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.full{grid-column:1/-1}
+.fact{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.actgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.ph{aspect-ratio:16/10;border-radius:10px;background:repeating-linear-gradient(135deg,var(--soft) 0 14px,transparent 14px 28px);border:1.5px dashed var(--line);display:grid;place-items:center;color:var(--mute);font-weight:700;overflow:hidden;position:relative}
+.ph img{width:100%;height:100%;object-fit:cover}
+.tag{position:absolute;left:8px;bottom:8px;background:rgba(10,12,40,.78);color:#fff;font-size:12px;padding:3px 8px;border-radius:6px}
+.svc h3{margin:12px 0 4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{font-size:13px;background:var(--soft);padding:3px 10px;border-radius:99px}
+.unit{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.unit:hover{border-color:var(--blue)}
+.bigc{font:italic 800 30px/1 "Barlow Condensed",sans-serif}
+.tk{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.3fr) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.ev-photo{max-width:100%;border-radius:10px;margin-top:6px;display:block}
+.msg{font-size:15px;min-height:120px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:12px 18px;border-radius:10px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90vw}
+#toast.on{opacity:1;transform:translateX(-50%)}
+footer{max-width:1240px;margin:auto;padding:0 max(3vw,14px) 40px;color:var(--mute);font-size:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.fdet summary{display:none}.fdet summary::-webkit-details-marker{display:none}
+.more{display:flex;justify-content:center;margin-top:14px}
+@media(max-width:900px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.vrow{grid-template-columns:70px minmax(0,1fr) auto}.vrow .what{grid-column:2/4}.vrow .stt{grid-column:1/2;grid-row:2}.vrow .what{grid-row:2}.vrow>button{grid-column:3;grid-row:1}}
+@media(max-width:600px){.fdet summary{display:flex;align-items:center;min-height:44px;font-weight:700;cursor:pointer;background:var(--panel);border:1.5px solid var(--line);border-radius:9px;padding:0 14px;margin-bottom:10px;list-style:none}.fdet[open] summary{margin-bottom:8px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.fgrid,.actgrid{grid-template-columns:minmax(0,1fr)}.vrow{grid-template-columns:62px minmax(0,1fr)}.vrow>button{grid-column:1/-1;grid-row:auto;min-height:48px}.vrow .stt{grid-column:1/-1;grid-row:auto}.vrow .what{grid-column:2;grid-row:auto}.kv{grid-template-columns:minmax(0,1fr)}.kv dt{margin-top:6px}.cell{min-height:70px}.ev{font-size:11px}.tk{grid-template-columns:minmax(0,1fr)}.top img{height:32px}.btn{min-height:48px}
+table.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 12px;padding-inline-start:8.5em}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;color:var(--mute);font-size:13px;font-weight:600}.stack td:empty{display:none}}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<header class="top"><div class="topin">
+<img id="logo" alt="VENSERVI, Servicios de Mantenimiento y Construcciones">
+<span class="demo">Demo de IR Centro Creativo · datos ficticios</span>
+<nav class="nav" aria-label="Navegación" id="nav"></nav>
+</div></header>
+<main id="view"></main>
+<footer><span><svg class="flag" width="21" height="14" viewBox="0 0 21 14" role="img" aria-label="Venezuela"><rect width="21" height="14" fill="#cf142b"/><rect width="21" height="9.34" fill="#00247d"/><rect width="21" height="4.67" fill="#ffcc00"/><g fill="#fff"><circle cx="7.12" cy="7.51" r=".42"/><circle cx="7.87" cy="6.42" r=".42"/><circle cx="9.04" cy="5.68" r=".42"/><circle cx="10.44" cy="5.40" r=".42"/><circle cx="11.85" cy="5.63" r=".42"/><circle cx="13.05" cy="6.34" r=".42"/><circle cx="13.84" cy="7.40" r=".42"/><circle cx="14.10" cy="8.66" r=".42"/></g></svg> Propuesta de IR Centro Creativo para VENSERVI. Clientes, contactos, direcciones, visitas y placas son ficticios. Horario de Caracas (UTC−4). Los cambios se guardan solo en este navegador.</span><button class="btn sm" data-a="reset">Restablecer demo</button></footer>
+<div id="md" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+{
+const LOGO='img/logo-venservi.png';const PH={v1:'img/servicio-1.jpg',v2:'img/servicio-2.jpg',v3:'img/servicio-3.jpg',v4:'img/servicio-4.jpg',v5:'img/servicio-5.jpg',v6:'img/servicio-6.jpg',v7:'img/servicio-7.jpg',v8:'img/servicio-8.jpg',v9:'img/servicio-9.jpg',v10:'img/servicio-10.jpg',v11:'img/servicio-11.jpg'};
+const TZ='America/Caracas',KEY='venservi-agenda-demo',VER=5;
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtT=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+function nowParts(){const o={};for(const p of fmtT.formatToParts(new Date()))o[p.type]=p.value;return{d:`${o.year}-${o.month}-${o.day}`,t:`${o.hour}:${o.minute}`}}
+let T=nowParts().d;
+const stamp=()=>{const n=nowParts();return n.d+' '+n.t};
+const P=iso=>{const[y,m,d]=iso.split('-').map(Number);return Date.UTC(y,m-1,d)};
+const F=t=>new Date(t).toISOString().slice(0,10);
+const addD=(iso,n)=>F(P(iso)+n*864e5);
+const dim=(y,m)=>new Date(Date.UTC(y,m+1,0)).getUTCDate();
+const addM=(iso,n)=>{const[y,m,d]=iso.split('-').map(Number);const x=new Date(Date.UTC(y,m-1+n,1));const yy=x.getUTCFullYear(),mm=x.getUTCMonth();return F(Date.UTC(yy,mm,Math.min(d,dim(yy,mm))))};
+const diff=(a,b)=>Math.round((P(a)-P(b))/864e5);
+const MES=['ene.','feb.','mar.','abr.','may.','jun.','jul.','ago.','sept.','oct.','nov.','dic.'];
+const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DOW=['dom.','lun.','mar.','mié.','jue.','vie.','sáb.'];
+const fd=iso=>{if(!iso)return'—';const[y,m,d]=iso.split('-').map(Number);return`${d} ${MES[m-1]} ${y}`};
+const dow=iso=>DOW[new Date(P(iso)).getUTCDay()];
+const fst=s=>s?fd(s.slice(0,10))+' · '+s.slice(11):'—';
+const num=n=>Math.round(n).toLocaleString('es-VE');
+
+/* ---------- Catálogo (fuentes públicas indicadas) ---------- */
+const SRC={web:'https://venservi.com/',ig:'https://www.instagram.com/venservi.vactor/',fb:'https://www.facebook.com/venservi/'};
+const FLY='Flyer de servicios de VENSERVI';
+const SV=[
+{id:'v1',n:'Alquiler de camión Vactor',d:'Succión de lodos y sólidos combinada con limpieza con hidrojet de alta presión.',t:'Industrias, refinerías, centros comerciales, condominios',e:'Camión Vactor',src:FLY+' · venservi.com'},
+{id:'v2',n:'Alquiler de camión de vacío (Vacuum)',d:'Succión y traslado de líquidos y lodos de tanquillas, pozos y fosas.',t:'Industrias, condominios, obras',e:'Camión de vacío',src:'venservi.com · Instagram @venservi.vactor'},
+{id:'v3',n:'Limpieza con hidrojet de alta presión',d:'Lavado a presión de tuberías, colectores y equipos para retirar sedimentos e incrustaciones.',t:'Industrias, refinerías, centros comerciales',e:'Hidrojet / Vactor',src:FLY},
+{id:'v4',n:'Destape y limpieza de drenajes y tuberías',d:'Destape de tuberías y limpieza de drenajes y tanquillas obstruidas en edificaciones.',t:'Restaurantes, condominios, comercios',e:'Hidrojet y succión',src:FLY+' · venservi.com'},
+{id:'v5',n:'Limpieza de drenajes y alcantarillas en vías públicas',d:'Limpieza de drenajes y alcantarillas en calles, avenidas y autopistas, para municipios y gobernaciones.',t:'Alcaldías, gobernaciones, urbanizaciones',e:'Camión Vactor',src:FLY},
+{id:'v6',n:'Limpieza de pozos sépticos',d:'Succión y limpieza de pozos sépticos.',t:'Residencias, hoteles, colegios',e:'Camión de vacío',src:FLY},
+{id:'v7',n:'Limpieza de trampas de grasa',d:'Retiro de grasa y sólidos acumulados en trampas de grasa.',t:'Restaurantes, panaderías, hoteles, clínicas',e:'Camión de vacío',src:FLY},
+{id:'v8',n:'Limpieza de plantas de tratamiento',d:'Limpieza de tanques y unidades de plantas de tratamiento de aguas residuales.',t:'Industrias, hoteles, urbanizaciones',e:'Vactor o vacío',src:FLY},
+{id:'v9',n:'Limpieza de tanquillas eléctricas y telefónicas',d:'Succión de agua y sedimentos en tanquillas de servicios.',t:'Centros comerciales, urbanizaciones, industrias',e:'Camión de vacío',src:'venservi.com · Instagram @venservi.vactor'},
+{id:'v10',n:'Limpieza de taladros petroleros y lodos petrolizados',d:'Limpieza de taladros, succión y traslado de lodos petrolizados y lavado con hidrojet de alta presión.',t:'Taladros y locaciones petroleras',e:'Vactor e hidrojet',src:FLY},
+{id:'v11',n:'Limpieza industrial',d:'Limpieza industrial en refinerías, cementeras, construcciones y aeropuertos.',t:'Refinerías, cementeras, obras, aeropuertos',e:'Según el trabajo',src:FLY}];
+SV.forEach(x=>{x.ph=PH[x.id]||'';x.phd={'v1': 'Unidad Vactor con carrete de manguera de alta presión', 'v2': 'Camión de vacío trabajando en la calle', 'v3': 'Unidad Vactor en operación', 'v4': 'Cuadrilla destapando un drenaje por la boca de visita', 'v5': 'Unidad trabajando en una avenida de Caracas', 'v6': 'Unidad de vacío Vactor 2100 en una sede', 'v7': 'Camión de vacío frente a un local comercial', 'v8': 'Unidad de vacío junto a un tanque en planta', 'v9': 'Unidad de succión de VENSERVI', 'v10': 'Unidad y cuadrilla en un taladro petrolero', 'v11': 'Unidad en una locación industrial'}[x.id]||x.n});
+const RUB=['Restaurantes y panaderías','Condominios y residencias','Supermercados y centros comerciales','Hoteles y clínicas','Industrias y centros logísticos','Centros educativos'];
+const MUN=['Baruta','Chacao','El Hatillo','Libertador','Sucre','Vargas (La Guaira)','Guaicaipuro','Plaza','Zamora','Cristóbal Rojas','Los Salias'];
+const CUAD=['Cuadrilla Alfa','Cuadrilla Bravo','Cuadrilla Industrial','Cuadrilla Litoral'];
+const OBS=['Servicio sin novedad.','Se retiraron sedimentos acumulados; el drenaje quedó operativo.','Alta carga de grasa; se recomienda mantener la frecuencia.','Zona entregada limpia; se informó al encargado.'];
+
+/* ---------- Clientes y sedes de demostración (ficticios) ---------- */
+const R=RUB;
+const CL=[
+['c1','Restaurante Patio del Cedro',R[0],[['s1','Las Mercedes','Calle Madrid, local 4, Las Mercedes','Baruta','Mariela Duarte','0212-555-0141','06:00 a 10:00','Entrada por el callejón de servicio. Avisar al vigilante.'],['s2','Los Palos Grandes','3.ª avenida, local 12, Los Palos Grandes','Chacao','Andrés Lugo','0212-555-0142','05:30 a 09:00','Estacionar en la calle lateral; la trampa está en el patio trasero.']]],
+['c2','Panificadora Trigal de Niebla',R[0],[['s3','Planta de producción','Calle 4, galpón 7, zona industrial de La Urbina','Sucre','Yohana Pinto','0212-555-0143','13:00 a 16:00','Portón de carga; registrar la unidad en la garita.']]],
+['c3','Panadería Espiga Dorada',R[0],[['s4','Altamira','Av. Luis Roche, local 2, Altamira','Chacao','Pedro Saavedra','0212-555-0144','05:00 a 07:00','Camión en la avenida; manguera por el pasillo de servicio.'],['s5','Santa Mónica','Av. Teresa de la Parra, local 9, Santa Mónica','Libertador','Carla Rivas','0212-555-0145','14:00 a 16:00','Acceso por la calle trasera.']]],
+['c4','Parrilla El Fogón del Ávila',R[0],[['s6','La Lagunita','C. C. La Lagunita, nivel calle, local 3','El Hatillo','Gustavo Ferrer','0212-555-0146','15:00 a 17:00','Usar el estacionamiento de proveedores.']]],
+['c5','Cafetería Rincón Mirandino',R[0],[['s7','El Cafetal','Av. Principal de El Cafetal, local 21','Baruta','Rosa Quintero','0212-555-0147','05:30 a 07:30','Tanquilla frente a la entrada; no bloquear la acera.']]],
+['c6','Condominio Mirador de Cobalto',R[1],[['s8','Torre principal','Av. principal de Prados del Este, Torre Cobalto','Baruta','Junta de condominio','0212-555-0148','08:00 a 12:00','Avisar en vigilancia; el camión entra por el sótano 1.']]],
+['c7','Residencias Sendero del Turpial',R[1],[['s9','Edificio central','Calle Sucre, Los Dos Caminos','Sucre','Administradora Lisbeth Mora','0212-555-0149','09:00 a 12:00','Estacionar en la rampa de servicio.']]],
+['c8','Conjunto Residencial Bosque Alto',R[1],[['s10','Sector Los Naranjos','Calle Los Robles, Los Naranjos','El Hatillo','Félix Arismendi','0414-555-0201','08:00 a 11:00','Pozo séptico detrás del área social.']]],
+['c9','Residencias Brisas de Macuto',R[1],[['s11','Edificio Brisas','Av. La Playa, Macuto','Vargas (La Guaira)','Nelly Bastidas','0424-555-0202','08:00 a 11:00','Camión por la calle de servicio.']]],
+['c10','Condominio Torres del Samán',R[1],[['s12','Torre A','Av. Panteón, San Bernardino','Libertador','Junta de condominio','0212-555-0150','09:00 a 12:00','Coordinar con conserjería.'],['s13','Torre B','Av. Panteón, San Bernardino','Libertador','Junta de condominio','0212-555-0150','09:00 a 12:00','Coordinar con conserjería.']]],
+['c11','Centro Comercial Paseo del Samán',R[2],[['s14','Nivel de servicios','Av. Francisco de Miranda, nivel de servicios','Chacao','Gerencia de operaciones','0212-555-0151','05:00 a 09:00','Entrada por el muelle de carga.']]],
+['c12','Mercados Brisa del Ávila',R[2],[['s15','Sucursal La Urbina','Calle 8, La Urbina','Sucre','Jefe de tienda','0212-555-0152','05:30 a 07:30','Patio de carga posterior.'],['s16','Sucursal El Paraíso','Av. Páez, El Paraíso','Libertador','Jefe de tienda','0212-555-0153','05:30 a 07:30','Patio de carga lateral.']]],
+['c13','Supermercado La Cosecha Diaria',R[2],[['s17','Los Teques','Av. Bermúdez, Los Teques','Guaicaipuro','Óscar Vielma','0212-555-0154','05:00 a 07:00','Acceso por la calle de proveedores.']]],
+['c14','Centro Comercial Plaza Araguaney',R[2],[['s18','Guarenas','Av. Intercomunal Guarenas-Guatire','Plaza','Mantenimiento C. C.','0212-555-0155','04:30 a 07:00','Tanquillas en el estacionamiento norte.']]],
+['c15','Hotel Mirador del Laurel',R[3],[['s19','Torre de hospedaje','Av. Francisco de Miranda, El Rosal','Chacao','Jefe de mantenimiento','0212-555-0156','08:00 a 11:00','Entrada por servicio; registrar al personal.']]],
+['c16','Clínica Lomas del Cují',R[3],[['s20','Sede ambulatoria','Calle París, Las Mercedes','Baruta','Coordinación de servicios generales','0212-555-0157','15:00 a 18:00','Horario fuera de consultas; usar el acceso de ambulancias solo con autorización.']]],
+['c17','Hotel Costa Coral',R[3],[['s21','Caraballeda','Av. La Costanera, Caraballeda','Vargas (La Guaira)','Jefe de mantenimiento','0212-555-0158','08:00 a 11:00','Planta de tratamiento junto al estacionamiento.']]],
+['c18','Industrias Faro de Acero',R[4],[['s22','Planta Norte','Calle El Mirtal, Boleíta Norte','Sucre','Ing. Marcos Tovar','0212-555-0159','07:00 a 15:00','Charla de seguridad en garita; casco y botas obligatorios.']]],
+['c19','Logística Rutas del Cedro',R[4],[['s23','Patio de maniobras','Zona industrial de Guarenas','Plaza','Supervisor de patio','0212-555-0160','07:00 a 16:00','Ingreso por el portón 2.']]],
+['c20','Alimentos Valle Fértil',R[4],[['s24','Planta Guatire','Zona industrial Castillejo, Guatire','Zamora','Ing. Daniela Rondón','0212-555-0161','06:00 a 14:00','Permiso de trabajo previo; entrada por el andén 3.']]],
+['c21','Envases del Tuy',R[4],[['s25','Planta Charallave','Zona industrial de Charallave','Cristóbal Rojas','Seguridad industrial','0239-555-0162','07:00 a 15:00','Registro de la unidad y del personal en vigilancia.']]],
+['c22','Colegio Valle de los Araguaneyes',R[5],[['s26','Sede principal','Calle principal de La Boyera','El Hatillo','Administración','0212-555-0163','14:00 a 17:00','Solo fuera del horario de clases.']]]];
+/* plan: id, sede, servicio, primera fecha, hora, frecuencia, responsable, unidad, notas, extra */
+const PL=[
+['p1','s1','v7','2026-07-24','08:00','mensual','Cuadrilla Alfa','u3'],
+['p2','s2','v7','2026-07-21','07:30','mensual','Cuadrilla Alfa','u3'],
+['p3','s3','v7','2026-09-10','14:00','bimestral','Cuadrilla Alfa','u4'],
+['p4','s4','v7','2026-08-12','06:30','mensual','Cuadrilla Alfa','u3'],
+['p5','s5','v4','2026-09-18','14:30','trimestral','Cuadrilla Bravo','u1'],
+['p6','s6','v7','2026-08-05','15:00','bimestral','Cuadrilla Alfa','u4'],
+['p7','s7','v7','2026-10-01','06:00','mensual','Cuadrilla Alfa','u3'],
+['p8','s8','v4','2026-08-29','08:30','mensual','Cuadrilla Bravo','u1'],
+['p9','s9','v4','2026-08-19','09:00','trimestral','Cuadrilla Bravo','u2'],
+['p10','s10','v6','2026-07-15','09:00','semestral','Cuadrilla Industrial','u4'],
+['p11','s11','v6','2026-09-25','08:00','trimestral','Cuadrilla Litoral','u4'],
+['p12','s12','v4','2026-10-07','09:00','bimestral','Cuadrilla Bravo','u2'],
+['p13','s13','v4','2026-10-08','09:00','bimestral','Cuadrilla Bravo','u2'],
+['p14','s14','v4','2026-07-23','06:30','mensual','Cuadrilla Bravo','u1'],
+['p15','s14','v7','2026-10-02','05:30','quincenal','Cuadrilla Alfa','u3','Trampas de la feria de comida.'],
+['p16','s15','v7','2026-10-02','06:30','quincenal','Cuadrilla Alfa','u3'],
+['p17','s16','v7','2026-07-26','06:30','mensual','Cuadrilla Alfa','u3'],
+['p18','s17','v7','2026-09-14','06:00','mensual','Cuadrilla Alfa','u4'],
+['p19','s18','v9','2026-08-20','05:00','trimestral','Cuadrilla Bravo','u2'],
+['p20','s19','v6','2026-08-14','09:30','trimestral','Cuadrilla Industrial','u4'],
+['p21','s19','v7','2026-09-09','08:00','mensual','Cuadrilla Alfa','u3','Trampa de la cocina principal.'],
+['p22','s20','v4','2026-07-25','16:00','bimestral','Cuadrilla Bravo','u1'],
+['p23','s21','v8','2026-09-30','08:00','bimestral','Cuadrilla Litoral','u5'],
+['p24','s22','v8','2026-07-18','10:00','bimestral','Cuadrilla Industrial','u5'],
+['p25','s22','v3','2026-11-27','10:00','semestral','Cuadrilla Industrial','u5','Lavado a presión de colectores de la nave 2.'],
+['p26','s23','v1','2026-07-28','09:00','mensual','Cuadrilla Industrial','u1'],
+['p27','s24','v3','2026-08-31','07:00','mensual','Cuadrilla Industrial','u2','Plan del día 31: en meses cortos se usa el último día del mes.'],
+['p28','s25','v2','2026-10-15','08:00','personalizada','Cuadrilla Industrial','u4','Frecuencia acordada con planta.',{cada:21}],
+['p29','s26','v4','2026-08-11','16:00','trimestral','Cuadrilla Bravo','u2','Solo fuera del horario de clases.'],
+['p30','s10','v4','2026-08-20','10:00','bimestral','Cuadrilla Bravo','u2','Plan pausado: el conjunto está en obras.',{pr:[{from:'2026-11-01',to:null}]}]];
+
+/* ---------- Flota (ejemplos locales) ---------- */
+const TYP={VAC:'Vactor',VCM:'Vacuum',MIX:'Mixta',APY:'Apoyo'};
+const UN=[
+['u1','VAC-01','AB1-23C','VAC','Freightliner M2 · Vactor 2100',148200,3420,70,3.5,'Luis Mendoza'],
+['u2','VAC-02','AC4-56D','VAC','International 7400 · Vactor 2100',186900,4710,65,3.2,'Luis Mendoza'],
+['u3','VCM-03','AD7-89E','VCM','Ford F-750 · tanque de vacío',121400,2650,80,2.5,'Ramón Ochoa'],
+['u4','VCM-04','AE1-11F','VCM','Chevrolet Kodiak · tanque de vacío',203500,5120,60,2.8,'Ramón Ochoa'],
+['u5','MIX-05','AF2-22G','MIX','Mack Granite · combinado succión y alta presión',97800,2210,55,3.8,'Luis Mendoza'],
+['u6','APY-06','AG3-33H','APY','Toyota Hilux · camioneta de apoyo',64300,0,90,0,'Ramón Ochoa']];
+const TT=[
+['Chasis y conducción','Aceite y filtros del motor',180,10000,250,'VAC VCM MIX APY'],
+['Chasis y conducción','Sistema de refrigeración',180,20000,0,'VAC VCM MIX APY'],
+['Chasis y conducción','Batería',365,0,0,'VAC VCM MIX APY'],
+['Chasis y conducción','Frenos',90,15000,0,'VAC VCM MIX APY'],
+['Chasis y conducción','Neumáticos',120,20000,0,'VAC VCM MIX APY'],
+['Chasis y conducción','Luces y dirección',60,0,0,'VAC VCM MIX APY'],
+['Sistema de vacío','Revisión de bomba de vacío',90,0,500,'VAC VCM MIX'],
+['Sistema de vacío','Lubricación de la bomba',30,0,100,'VAC VCM MIX'],
+['Sistema de vacío','Mangueras, conexiones y válvulas',45,0,0,'VAC VCM MIX'],
+['Sistema de vacío','Sellos y filtros de vacío',90,0,200,'VAC VCM MIX'],
+['Sistema de alta presión','Bomba de agua',180,0,500,'VAC MIX'],
+['Sistema de alta presión','Filtros y boquillas',60,0,0,'VAC MIX'],
+['Sistema de alta presión','Carrete y mangueras',90,0,0,'VAC MIX'],
+['Sistema de alta presión','Revisión de fugas',30,0,0,'VAC MIX'],
+['Tanques e hidráulica','Limpieza e inspección de tanque',30,0,0,'VAC VCM MIX'],
+['Tanques e hidráulica','Juntas e indicadores de nivel',90,0,0,'VAC VCM MIX'],
+['Tanques e hidráulica','Circuito hidráulico',180,0,250,'VAC VCM MIX']];
+const AREAS=['Chasis y conducción','Sistema de vacío','Sistema de alta presión','Tanques e hidráulica'];
+
+let S=null;
+function mkUnit([id,code,plate,ty,model,km,h,kmDay,hDay,resp],ui){
+ const tasks=[];TT.forEach(([area,name,days,tkm,th,tys],i)=>{if(!tys.split(' ').includes(ty))return;
+  let f=((i*37+ui*53)%70)/100+0.12;
+  if(id==='u2'&&name==='Frenos')f=1.06;
+  if(id==='u1'&&name==='Lubricación de la bomba')f=0.9;
+  if(id==='u5'&&name==='Revisión de fugas')f=0.85;
+  const span=Math.min(days,tkm?tkm/kmDay:1e9,th&&hDay?th/hDay:1e9);const ago=Math.round(span*f);
+  tasks.push({id:'t'+i,area,name,days,km:tkm,h:hDay?th:0,last:{date:addD(T,-ago),km:Math.round(km-kmDay*ago),h:Math.round(h-hDay*ago)}})});
+ return{id,code,plate,type:TYP[ty],model,km,h,kmDay,hDay,resp,oos:false,taller:null,log:[],tasks}}
+
+function seed(){
+ T=nowParts().d;
+ const s={v:VER,clients:[],sedes:[],plans:[],ov:{},units:[],photos:{},n:100,seededOn:T};
+ for(const[id,n,r,ss]of CL){s.clients.push({id,n,r});for(const[sid,sn,dir,mun,ct,tel,hor,acc]of ss)s.sedes.push({id:sid,c:id,n:sn,dir,mun,ct,tel,hor,acc})}
+ for(const[id,se,sv,start,time,f,resp,unit,notes,ex]of PL)s.plans.push({id,s:se,sv,start,time,f,cada:ex?.cada||0,resp,unit,dc:2,notes:notes||'',until:null,pr:ex?.pr?ex.pr.map(r=>({...r})):[]});
+ s.units=UN.map(mkUnit);
+ const u4=s.units.find(u=>u.id==='u4');u4.taller={diag:'Fuga en los sellos de la bomba de vacío.',rep:'Kit de sellos y aceite para bomba',in:addD(T,-2),plan:addD(T,3),out:null,photo:null};
+ const u1=s.units.find(u=>u.id==='u1');u1.log.push({date:addD(T,-20),tasks:['Revisión de fugas'],km:u1.km-1400,h:u1.h-70,resp:'Luis Mendoza',obs:'Sin fugas visibles (registro de ejemplo).'});
+ S=s;
+ const past=visits().filter(v=>v.o<T).sort((a,b)=>b.o.localeCompare(a.o));
+ past.forEach((v,i)=>{const at=d=>d+' 10:00';
+  if(i===0)return;
+  if(i===1){s.ov[v.id]={contacted:at(addD(v.o,-2))};return}
+  if(i===2){s.ov[v.id]={st:'Cancelada',reason:'El cliente pidió suspender esta visita.',cancelAt:at(addD(v.o,-1)),contacted:at(addD(v.o,-3))};return}
+  if(i===3){s.ov[v.id]={st:'Reprogramada',date:addD(T,2),time:'10:00',note:'Reprogramada a solicitud del cliente.',contacted:at(addD(v.o,-2))};return}
+  s.ov[v.id]={st:'Realizada',contacted:at(addD(v.o,-2)),confirmed:at(addD(v.o,-1)),done:{date:v.o,resp:v.p.resp,unit:v.p.unit,obs:OBS[i%4],photo:null,at:v.o+' '+v.p.time}}});
+ const next=visits().filter(v=>v.o>=T&&v.o<=addD(T,7)&&!s.ov[v.id]);
+ next.forEach((v,j)=>{const c=addD(T,-1)+' 09:30';
+  if(j===0)s.ov[v.id]={st:'Confirmada',contacted:c,confirmed:addD(T,-1)+' 15:10'};
+  else if(j%3===1)s.ov[v.id]={contacted:c};
+  else if(j%3===2)s.ov[v.id]={st:'Confirmada',contacted:c,confirmed:T+' 08:15'}});
+ const e1={id:'pe1',s:'s22',sv:'v4',start:addD(T,-1),time:'02:30',f:'unica',emerg:true,cada:0,resp:'Cuadrilla Industrial',unit:'u5',dc:0,notes:'Emergencia: desborde de tanquilla en la nave 2.',until:null,pr:[]};
+ const e2={id:'pe2',s:'s14',sv:'v4',start:T,time:'14:00',f:'unica',emerg:true,cada:0,resp:'Cuadrilla Bravo',unit:'u1',dc:0,notes:'Emergencia: drenaje colapsado en el estacionamiento.',until:null,pr:[]};
+ s.plans.push(e1,e2);
+ s.ov['pe1@'+e1.start]={st:'Realizada',contacted:e1.start+' 02:05',confirmed:e1.start+' 02:10',done:{date:e1.start,resp:e1.resp,unit:e1.unit,obs:'Se succionó el agua acumulada y se destapó el colector. Atendido en 45 minutos.',photo:null,at:e1.start+' 04:10'}};
+ s.ov['pe2@'+T]={st:'Confirmada',contacted:T+' 11:40',confirmed:T+' 11:45'};
+ return s}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const x=JSON.parse(r);if(x&&x.v===VER)return x}}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){toast('No hay espacio en este navegador para guardar el cambio (prueba con una foto más pequeña).');return false}}
+
+/* ---------- Motor de visitas ---------- */
+const FREQ={semanal:['Semanal',7,0],quincenal:['Quincenal',14,0],mensual:['Mensual',0,1],bimestral:['Bimestral',0,2],trimestral:['Trimestral',0,3],semestral:['Semestral',0,6],personalizada:['Personalizada',0,0],unica:['Servicio único',0,0]};
+const freqL=p=>p.f==='unica'?(p.emerg?'Emergencia (servicio único)':'Servicio único'):p.f==='personalizada'?`Cada ${p.cada} días`:FREQ[p.f][0];
+const paused=p=>(p.pr||[]).some(r=>!r.to);
+function occ(p,to){if(p.f==='unica')return p.start<=to?[p.start]:[];const out=[];const[,d,m]=FREQ[p.f];const step=p.f==='personalizada'?Math.max(1,+p.cada||30):d;
+ for(let n=0;n<900;n++){const x=m?addM(p.start,n*m):addD(p.start,n*step);if(x>to)break;if(p.until&&x>=p.until)break;if((p.pr||[]).some(r=>x>=r.from&&(!r.to||x<r.to)))continue;out.push(x)}return out}
+const OPEN=['Por confirmar','Confirmada','Reprogramada'];
+function visits(){const to=addD(T,400),out=[];for(const p of S.plans){for(const o of occ(p,to)){const id=p.id+'@'+o,ov=S.ov[id]||{};out.push({id,p,o,date:ov.date||o,time:ov.time||p.time,st:ov.st||'Por confirmar',ov})}}
+ for(const v of out)v.over=OPEN.includes(v.st)&&v.date<T;
+ return out.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))}
+const isRem=v=>!v.over&&['Por confirmar','Reprogramada'].includes(v.st)&&!v.ov.confirmed&&diff(v.date,T)>=0&&diff(v.date,T)<=v.p.dc;
+const stC=st=>({'Por confirmar':'st-pc','Confirmada':'st-co','Realizada':'st-re','Reprogramada':'st-rp','Cancelada':'st-ca','Vencida':'st-ve'}[st]||'st-pc');
+const stOf=v=>v.over?'Vencida':v.st;
+const pill=st=>`<span class="pill ${stC(st)}">${esc(st)}</span>`;
+const sedeOf=id=>S.sedes.find(x=>x.id===id),cliOf=id=>S.clients.find(x=>x.id===id),svOf=id=>SV.find(x=>x.id===id)||{n:'Servicio'},unitOf=id=>S.units.find(x=>x.id===id),planOf=id=>S.plans.find(x=>x.id===id);
+const sedeName=sid=>{const s=sedeOf(sid);return s?`${cliOf(s.c)?.n||''} · ${s.n}`:'—'};
+function msgFor(v){const s=sedeOf(v.p.s),c=cliOf(s.c);return`Hola, equipo de ${c.n}. Les escribimos de VENSERVI para confirmar el servicio de ${svOf(v.p.sv).n.toLowerCase()} en ${s.n} el ${dow(v.date)} ${fd(v.date)} a las ${v.time}. Horario permitido de la sede: ${s.hor}. ¿Nos confirman la visita? Gracias.`}
+
+/* ---------- Flota: cálculos ---------- */
+function taskDue(u,t){const dl=t.days?t.days-diff(T,t.last.date):Infinity;
+ const kl=t.km?(t.last.km+t.km-u.km)/u.kmDay:Infinity;const hl=t.h&&u.hDay?(t.last.h+t.h-u.h)/u.hDay:Infinity;
+ const est=Math.min(dl,kl,hl);const by=est===dl?'fecha':est===kl?'kilometraje':'horas';
+ const txt=by==='fecha'?fd(addD(t.last.date,t.days)):by==='kilometraje'?`${num(t.last.km+t.km)} km`:`${num(t.last.h+t.h)} h`;
+ const st=est<=0?'Vencido':est<=14?'Próximo':'Al día';return{est,by,txt,st,date:addD(T,Math.max(0,Math.ceil(est)))}}
+function unitSt(u){if(u.oos)return'Fuera de servicio';if(u.taller&&!u.taller.out)return'En taller';const d=u.tasks.map(t=>taskDue(u,t));if(d.some(x=>x.st==='Vencido'))return'Vencido';if(d.some(x=>x.st==='Próximo'))return'Mantenimiento próximo';return'Disponible'}
+const uC=st=>({'Disponible':'st-ok','Mantenimiento próximo':'st-pc','Vencido':'st-ve','En taller':'st-ta','Fuera de servicio':'st-ca','Al día':'st-ok','Próximo':'st-pc'}[st]);
+const upill=st=>`<span class="pill ${uC(st)}">${esc(st)}</span>`;
+const unitWarn=id=>{const u=unitOf(id);if(!u)return'';const st=unitSt(u);return st==='En taller'||st==='Fuera de servicio'?`Atención: la unidad ${u.code} está ${st.toLowerCase()}${u.taller&&!u.taller.out?` (salida prevista ${fd(u.taller.plan)})`:''}. Asigna otra unidad o reprograma.`:''};
+
+/* ---------- Estado de pantalla ---------- */
+const VIEWS=[['agenda','Agenda'],['recordatorios','Recordatorios'],['clientes','Clientes y sedes'],['planes','Planes'],['historial','Historial'],['flota','Mantenimiento de flota'],['servicios','Servicios']];
+const Fl={cli:'',sede:'',sv:'',resp:'',st:'',scope:'prox',quick:'',mode:'lista',tipo:'todo',month:T.slice(0,7),lim:40};
+const H={cli:'',sede:''};
+let V=[];
+const route=()=>{const h=location.hash.slice(1);return VIEWS.some(v=>v[0]===h)?h:'agenda'};
+function go(v){if(route()===v)render();else location.hash=v}
+function render(){T=nowParts().d;V=visits();const r=route();
+ $('#nav').innerHTML=VIEWS.map(([k,l])=>`<button data-a="nav" data-v="${k}" ${k===r?'aria-current="page"':''}>${l}</button>`).join('');
+ $('#view').innerHTML=({agenda:vAgenda,recordatorios:vRem,clientes:vCli,planes:vPlans,historial:vHist,flota:vFleet,servicios:vSvc})[r]();
+ document.title=`VENSERVI · ${VIEWS.find(v=>v[0]===r)[1]}`}
+
+const opt=(v,l,sel)=>`<option value="${esc(v)}" ${String(v)===String(sel)?'selected':''}>${esc(l)}</option>`;
+const sedeOpts=sel=>S.clients.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(c=>S.sedes.filter(s=>s.c===c.id).map(s=>opt(s.id,`${c.n} · ${s.n}`,sel)).join('')).join('');
+const unitOpts=sel=>opt('','Sin unidad asignada',sel)+S.units.map(u=>opt(u.id,`${u.code} · ${u.type} · ${unitSt(u)}`,sel)).join('');
+
+/* ---------- Vista: Agenda ---------- */
+function filtered(){let L=V;const f=Fl;
+ if(f.cli)L=L.filter(v=>sedeOf(v.p.s)?.c===f.cli);if(f.sede)L=L.filter(v=>v.p.s===f.sede);if(f.sv)L=L.filter(v=>v.p.sv===f.sv);if(f.resp)L=L.filter(v=>v.p.resp===f.resp);if(f.st)L=L.filter(v=>stOf(v)===f.st);return L}
+function counts(){return{hoy:V.filter(v=>v.date===T&&v.st!=='Cancelada').length,sem:V.filter(v=>v.date>=T&&v.date<=addD(T,7)&&v.st!=='Cancelada').length,venc:V.filter(v=>v.over).length,rem:V.filter(isRem).length}}
+function vAgenda(){const c=counts(),f=Fl;
+ const sedes=S.sedes.filter(s=>!f.cli||s.c===f.cli);
+ let body='';
+ if(f.mode==='cal')body=calHTML();else{
+  let L=filtered();
+  if(f.quick==='hoy')L=L.filter(v=>v.date===T);else if(f.quick==='sem')L=L.filter(v=>v.date>=T&&v.date<=addD(T,7));else if(f.quick==='venc')L=L.filter(v=>v.over);else if(f.quick==='rem')L=L.filter(isRem);
+  else if(f.scope==='prox')L=L.filter(v=>v.date>=T||v.over);
+  const tot=L.length;L=L.slice(0,f.lim);
+  body=tot?groupDays(L)+(tot>L.length?`<div class="more"><button class="btn" data-a="more">Mostrar más visitas (${tot-L.length} restantes)</button></div>`:''):`<div class="empty">No hay visitas con estos filtros.</div>`}
+ return`<section class="hero"><div><h1>AGENDA DE MANTENIMIENTO RECURRENTE</h1><p>Programa las limpiezas, avisa a cada cliente a tiempo, organiza las cuadrillas y lleva el historial de cada sede.</p></div><div class="acts"><button class="btn emer" data-a="emerg">+ Emergencia 24 h</button><button class="btn pri" data-a="newplan">+ Nuevo plan</button><button class="btn" data-a="ruta">Hoja de ruta</button><button class="btn" data-a="newclient">+ Nuevo cliente</button></div></section>
+ <div class="kpis">${[['hoy','Hoy',c.hoy],['sem','Próximos 7 días',c.sem],['venc','Vencidas',c.venc],['rem','Recordatorios',c.rem]].map(([k,l,n])=>`<button class="kpi ${f.quick===k?'on':''} ${k==='venc'&&n?'bad':''}" data-a="quick" data-q="${k}" aria-pressed="${f.quick===k}"><b>${n}</b><span>${l}</span></button>`).join('')}</div>
+ <div class="bar"><div class="seg" role="group" aria-label="Vista"><button class="${f.mode==='lista'?'on':''}" data-a="mode" data-m="lista">Lista</button><button class="${f.mode==='cal'?'on':''}" data-a="mode" data-m="cal">Calendario</button></div>
+ ${f.mode==='lista'?`<div class="seg" role="group" aria-label="Rango"><button class="${f.scope==='prox'&&!f.quick?'on':''}" data-a="scope" data-s="prox">Próximas</button><button class="${f.scope==='todas'&&!f.quick?'on':''}" data-a="scope" data-s="todas">Todas</button></div>`:`<div class="seg" role="group" aria-label="Tipo"><button class="${f.tipo==='todo'?'on':''}" data-a="tipo" data-t="todo">Todo</button><button class="${f.tipo==='vis'?'on':''}" data-a="tipo" data-t="vis">Visitas a clientes</button><button class="${f.tipo==='tal'?'on':''}" data-a="tipo" data-t="tal">Taller y flota</button></div>`}</div>
+ <details class="fdet" ${innerWidth>600||Fl.fopen?'open':''}><summary>Filtros${[f.cli,f.sede,f.sv,f.resp,f.st].filter(Boolean).length?` (${[f.cli,f.sede,f.sv,f.resp,f.st].filter(Boolean).length})`:''}</summary><div class="filters">
+ <label>Cliente<select data-flt="cli">${opt('','Todos',f.cli)}${S.clients.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(x=>opt(x.id,x.n,f.cli)).join('')}</select></label>
+ <label>Sede<select data-flt="sede">${opt('','Todas',f.sede)}${sedes.map(s=>opt(s.id,sedeName(s.id),f.sede)).join('')}</select></label>
+ <label>Servicio<select data-flt="sv">${opt('','Todos',f.sv)}${SV.map(x=>opt(x.id,x.n,f.sv)).join('')}</select></label>
+ <label>Responsable<select data-flt="resp">${opt('','Todos',f.resp)}${CUAD.map(x=>opt(x,x,f.resp)).join('')}</select></label>
+ <label>Estado<select data-flt="st">${opt('','Todos',f.st)}${['Por confirmar','Confirmada','Reprogramada','Realizada','Cancelada','Vencida'].map(x=>opt(x,x,f.st)).join('')}</select></label></div></details>
+ ${f.quick?`<div class="note">Mostrando: <b>${{hoy:'visitas de hoy',sem:'próximos 7 días',venc:'visitas vencidas sin registrar',rem:'clientes por avisar'}[f.quick]}</b>. <button class="btn sm" data-a="quick" data-q="${f.quick}">Quitar filtro</button></div>`:''}
+ ${body}`}
+function groupDays(L){let out='',cur='';for(const v of L){if(v.date!==cur){cur=v.date;const d=diff(v.date,T);out+=`<div class="day ${d===0?'today':''}"><b>${d===0?'Hoy':d===1?'Mañana':d===-1?'Ayer':esc(dow(v.date))} ${esc(fd(v.date))}</b><span>${d<0&&L.some(x=>x.date===v.date&&x.over)?'Con visitas vencidas':''}</span></div>`}out+=row(v)}return out}
+function row(v){const s=sedeOf(v.p.s),c=cliOf(s.c),u=unitOf(v.p.unit),st=stOf(v);
+ return`<article class="vrow ${stC(st)}"><div class="tm">${esc(v.time)}</div><div class="who"><b>${esc(c.n)}</b><small>${esc(s.n)} · ${esc(s.mun)}</small></div><div class="what"><b>${esc(svOf(v.p.sv).n)}</b><small>${esc(v.p.resp)}${u?` · ${esc(u.code)}`:''}${unitWarn(v.p.unit)&&OPEN.includes(v.st)?' · ⚠ unidad no disponible':''}</small></div><div class="stt">${v.p.emerg?'<span class="pill emg">Emergencia</span> ':''}${pill(st)}</div><button class="btn sm" data-a="visit" data-id="${esc(v.id)}">Ver visita</button></article>`}
+function calHTML(){const[y,m]=Fl.month.split('-').map(Number);const first=`${Fl.month}-01`;const start=addD(first,-((new Date(P(first)).getUTCDay()+6)%7));
+ const ev={};const add=(d,h)=>{(ev[d]=ev[d]||[]).push(h)};
+ if(Fl.tipo!=='tal')for(const v of filtered()){if(v.date<start||v.date>addD(start,42))continue;const s=sedeOf(v.p.s);add(v.date,`<button class="ev ${stC(stOf(v))}" data-a="visit" data-id="${esc(v.id)}" title="${esc(cliOf(s.c).n)} · ${esc(svOf(v.p.sv).n)}">${esc(v.time)} ${esc(cliOf(s.c).n)}</button>`)}
+ if(Fl.tipo!=='vis')for(const u of S.units){if(u.taller&&!u.taller.out){for(let d=u.taller.in;d<=u.taller.plan;d=addD(d,1))add(d,`<button class="ev tal" data-a="unit" data-id="${u.id}">Taller · ${esc(u.code)}</button>`)}
+  const due=u.tasks.map(t=>({t,d:taskDue(u,t)})).filter(x=>x.d.st!=='Al día').sort((a,b)=>a.d.est-b.d.est)[0];if(due)add(due.d.date,`<button class="ev tal" data-a="unit" data-id="${u.id}">Mant. ${esc(u.code)}: ${esc(due.t.name)}</button>`)}
+ let cells='';for(let i=0;i<42;i++){const d=addD(start,i),e=ev[d]||[];cells+=`<div class="cell ${d.slice(0,7)!==Fl.month?'out':''} ${d===T?'today':''}"><span class="n">${Number(d.slice(8))}</span>${e.slice(0,3).join('')}${e.length>3?`<button class="ev st-ca" data-a="calday" data-d="${d}">+${e.length-3} más</button>`:''}</div>`}
+ return`<div class="bar"><div class="calnav"><button class="btn sm" data-a="calmv" data-n="-1" aria-label="Mes anterior">‹</button><b>${MESL[m-1]} ${y}</b><button class="btn sm" data-a="calmv" data-n="1" aria-label="Mes siguiente">›</button><button class="btn sm" data-a="calmv" data-n="0">Hoy</button></div><span class="small muted">Visitas con el color de su estado · Naranja: taller y mantenimiento de flota</span></div>
+ <div class="cal">${['lun.','mar.','mié.','jue.','vie.','sáb.','dom.'].map(d=>`<div class="h">${d}</div>`).join('')}${cells}</div>`}
+
+/* ---------- Detalle de visita ---------- */
+function nextOf(v){const n=V.find(x=>x.p.id===v.p.id&&x.o>v.o&&x.st!=='Cancelada');return n?`${fd(n.date)} · ${n.time}`:'Sin próxima visita programada'}
+function openVisit(id){const v=V.find(x=>x.id===id);if(!v)return;const s=sedeOf(v.p.s),c=cliOf(s.c),u=unitOf(v.p.unit),st=stOf(v),ov=v.ov,open=OPEN.includes(v.st);
+ const d=ov.done;
+ modal('Detalle de la visita',`<div class="chips">${v.p.emerg?'<span class="pill emg">Emergencia</span>':''}${pill(st)}${ov.contacted?`<span class="chip">Contactado</span>`:''}${ov.confirmed?`<span class="chip">Confirmado por el cliente</span>`:''}</div>
+ <h2>${esc(svOf(v.p.sv).n)}</h2><p class="muted" style="margin:4px 0 0">${esc(c.n)} · ${esc(s.n)}</p>
+ <p style="margin:6px 0 0"><b>${esc(dow(v.date))} ${esc(fd(v.date))} · ${esc(v.time)}</b> · ${esc(v.p.resp)}${u?` · ${esc(u.code)} (${esc(u.type)})`:''}${v.date!==v.o?` <span class="small muted">(fecha original: ${esc(fd(v.o))})</span>`:''}</p>
+ ${open&&unitWarn(v.p.unit)?`<div class="warn" style="margin-top:10px">${esc(unitWarn(v.p.unit))}</div>`:''}
+ ${v.over?`<div class="warn" style="margin-top:10px">Visita vencida: registra si se realizó, se reprogramó o se canceló.</div>`:''}
+ <dl class="kv"><dt>Dirección</dt><dd>${esc(s.dir)} · ${esc(s.mun)}</dd><dt>Contacto</dt><dd>${esc(s.ct)} · ${esc(s.tel)}</dd><dt>Horario permitido</dt><dd>${esc(s.hor)}</dd><dt>Acceso del camión</dt><dd>${esc(s.acc)}</dd>
+ <dt>Plan</dt><dd>${esc(freqL(v.p))} desde ${esc(fd(v.p.start))}${v.p.notes?` · ${esc(v.p.notes)}`:''}</dd>
+ <dt>Contacto registrado</dt><dd>${esc(fst(ov.contacted))}</dd><dt>Confirmación</dt><dd>${esc(fst(ov.confirmed))}</dd>
+ ${ov.note?`<dt>Nota</dt><dd>${esc(ov.note)}</dd>`:''}${ov.reason?`<dt>Motivo de cancelación</dt><dd>${esc(ov.reason)}</dd>`:''}
+ <dt>Siguiente visita prevista</dt><dd>${esc(nextOf(v))}</dd></dl>
+ ${d?`<div class="card" style="margin:10px 0"><h3>Servicio realizado</h3><dl class="kv"><dt>Fecha efectiva</dt><dd>${esc(fd(d.date))}</dd><dt>Responsable</dt><dd>${esc(d.resp)}${unitOf(d.unit)?` · ${esc(unitOf(d.unit).code)}`:''}</dd><dt>Observaciones</dt><dd>${esc(d.obs||'—')}</dd></dl>${d.photo?`<div class="ph" style="aspect-ratio:auto"><img class="ev-photo" src="${esc(d.photo)}" alt="Foto adjunta a la visita"><span class="tag">Evidencia simulada</span></div>`:''}</div>`:''}
+ ${open?`<h3 style="margin-top:14px">Mensaje para WhatsApp</h3><p class="small muted" style="margin:2px 0 6px">Copia el mensaje y pégalo en el chat del cliente.</p><textarea class="msg" id="wmsg" aria-label="Mensaje para WhatsApp">${esc(msgFor(v))}</textarea>
+ <div class="actgrid"><button class="btn" data-a="copy" data-id="${esc(v.id)}">Copiar recordatorio</button><button class="btn" data-a="contact" data-id="${esc(v.id)}" ${ov.contacted?'disabled':''}>${ov.contacted?'Cliente contactado':'Marcar como contactado'}</button>
+ <button class="btn pri" data-a="confirm" data-id="${esc(v.id)}" ${v.st==='Confirmada'?'disabled':''}>${v.st==='Confirmada'?'Visita confirmada':'Confirmar visita'}</button><button class="btn" data-a="resched" data-id="${esc(v.id)}">Reprogramar solo esta visita</button>
+ ${v.p.f==='unica'?'':`<button class="btn" data-a="future" data-id="${esc(v.id)}">Cambiar fechas futuras</button>`}<button class="btn pri" data-a="done" data-id="${esc(v.id)}">Registrar servicio realizado</button>
+ <button class="btn red" data-a="cancel" data-id="${esc(v.id)}">Cancelar visita</button></div>`:`<div class="fact" style="margin-top:12px">${d?`<button class="btn pri" data-a="const" data-id="${esc(v.id)}">Copiar constancia para el cliente</button>`:''}<button class="btn" data-a="reopen" data-id="${esc(v.id)}">Reabrir visita</button><button class="btn" data-a="hist" data-id="${esc(s.id)}">Ver historial de la sede</button></div>`}`)}
+
+/* ---------- Vista: Recordatorios ---------- */
+function vRem(){const L=V.filter(isRem),over=V.filter(v=>v.over);
+ const card=v=>{const s=sedeOf(v.p.s),c=cliOf(s.c);return`<div class="card"><div class="chips">${pill(stOf(v))}${v.ov.contacted?'<span class="chip">Contactado</span>':''}</div><h3>${esc(c.n)}</h3><p class="muted small" style="margin:2px 0 8px">${esc(s.n)} · ${esc(svOf(v.p.sv).n)}<br><b>${esc(dow(v.date))} ${esc(fd(v.date))} · ${esc(v.time)}</b> · ${esc(s.ct)} · ${esc(s.tel)}</p>
+ <div class="actgrid"><button class="btn" data-a="copy" data-id="${esc(v.id)}">Copiar mensaje</button><button class="btn" data-a="contact" data-id="${esc(v.id)}" ${v.ov.contacted?'disabled':''}>${v.ov.contacted?'Contactado':'Registrar contacto'}</button><button class="btn pri" data-a="confirm" data-id="${esc(v.id)}">Confirmar visita</button><button class="btn" data-a="visit" data-id="${esc(v.id)}">Ver visita</button></div></div>`};
+ return`<section class="hero"><div><h1>Recordatorios</h1><p>Clientes a los que toca avisar según los días de anticipación de cada plan. Copia el mensaje, regístralo y confirma la visita.</p></div></section>
+ ${L.length?`<div class="cards">${L.map(card).join('')}</div>`:`<div class="empty">No hay clientes por avisar hoy.</div>`}
+ <h2 class="grp">Vencidas sin registrar (${over.length})</h2>${over.length?over.map(row).join(''):`<div class="empty">No hay visitas vencidas.</div>`}`}
+
+/* ---------- Vista: Clientes ---------- */
+function vCli(){return`<section class="hero"><div><h1>Clientes y sedes</h1><p>${S.clients.length} clientes y ${S.sedes.length} sedes de demostración en Caracas y alrededores. Cada sede guarda dirección, contacto, horario permitido y acceso del camión.</p></div><div class="acts"><button class="btn pri" data-a="newclient">+ Nuevo cliente</button></div></section>
+ ${RUB.map(r=>{const cs=S.clients.filter(c=>c.r===r);if(!cs.length)return'';return`<h2 class="grp">${esc(r)} (${cs.length})</h2><div class="cards">${cs.map(c=>`<div class="card"><h3>${esc(c.n)}</h3>${S.sedes.filter(s=>s.c===c.id).map(s=>{const ps=S.plans.filter(p=>p.s===s.id&&!p.until);return`<div style="border-top:1px solid var(--line);margin-top:10px;padding-top:10px"><b>${esc(s.n)}</b> <span class="muted small">· ${esc(s.mun)}</span><p class="small muted" style="margin:4px 0">${esc(s.dir)}<br>${esc(s.ct)} · ${esc(s.tel)}<br>Horario: ${esc(s.hor)}<br>Acceso: ${esc(s.acc)}</p><div class="chips">${ps.map(p=>`<span class="chip">${esc(svOf(p.sv).n)} · ${esc(freqL(p))}${paused(p)?' (pausado)':''}</span>`).join('')||'<span class="chip">Sin planes</span>'}</div><div class="acts"><button class="btn sm" data-a="newplan" data-id="${s.id}">+ Plan</button><button class="btn sm" data-a="hist" data-id="${s.id}">Historial</button></div></div>`}).join('')}<div class="acts" style="margin-top:10px"><button class="btn sm" data-a="newsede" data-id="${c.id}">+ Agregar sede</button></div></div>`).join('')}</div>`}).join('')}`}
+
+/* ---------- Vista: Planes ---------- */
+function vPlans(){const act=S.plans.filter(p=>!p.until&&p.f!=='unica'),old=S.plans.filter(p=>p.until&&p.f!=='unica');
+ const nextV=p=>{const n=V.find(v=>v.p.id===p.id&&v.date>=T&&OPEN.includes(v.st));return n?`${fd(n.date)} · ${n.time}`:'—'};
+ const tr=p=>`<tr class="${p.until||paused(p)?'off':''}"><td><b>${esc(sedeName(p.s))}</b></td><td>${esc(svOf(p.sv).n)}</td><td>${esc(freqL(p))} · ${esc(p.time)}</td><td>${p.until?'—':esc(nextV(p))}</td><td>${esc(p.resp)}${unitOf(p.unit)?`<br><span class="small muted">${esc(unitOf(p.unit).code)} · ${esc(unitSt(unitOf(p.unit)))}</span>`:''}</td><td>${p.until?`Cerrado el ${esc(fd(p.until))} (cambio de fechas)`:paused(p)?'Pausado':'Activo'}</td><td>${p.until?'':`<div class="acts"><button class="btn sm" data-a="editplan" data-id="${p.id}">Editar</button><button class="btn sm" data-a="toggleplan" data-id="${p.id}">${paused(p)?'Reactivar':'Pausar'}</button></div>`}</td></tr>`;
+ return`<section class="hero"><div><h1>Planes de mantenimiento</h1><p>Cada plan genera sus visitas automáticamente: semanal, quincenal, mensual, bimestral, trimestral, semestral o personalizada. Si un plan empieza el día 31, en meses más cortos se usa el último día.</p></div><div class="acts"><button class="btn pri" data-a="newplan">+ Nuevo plan</button></div></section>
+ <table class="stack"><thead><tr><th>Cliente y sede</th><th>Servicio</th><th>Frecuencia</th><th>Próxima visita</th><th>Responsable</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${act.map(tr).join('')}${old.map(tr).join('')}</tbody></table>`}
+
+/* ---------- Vista: Historial ---------- */
+function vHist(){const sedes=S.sedes.filter(s=>!H.cli||s.c===H.cli);
+ let L=V.filter(v=>v.st==='Realizada'||v.st==='Cancelada');if(H.cli)L=L.filter(v=>sedeOf(v.p.s).c===H.cli);if(H.sede)L=L.filter(v=>v.p.s===H.sede);
+ L=L.slice().sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+ const pend=V.filter(v=>v.over&&(!H.cli||sedeOf(v.p.s).c===H.cli)&&(!H.sede||v.p.s===H.sede));
+ const mo=T.slice(0,7),inM=V.filter(v=>v.date.slice(0,7)===mo&&v.date<=T&&v.st!=='Cancelada'),okM=inM.filter(v=>v.st==='Realizada'),pct=inM.length?Math.round(okM.length*100/inM.length):0;
+ const byC=CUAD.map(c=>{const a=inM.filter(v=>(v.ov.done?.resp||v.p.resp)===c),o=a.filter(v=>v.st==='Realizada');return[c,o.length,a.length]}).filter(x=>x[2]);
+ return`<section class="hero"><div><h1>Historial por sede</h1><p>Servicios realizados y cancelados, con fecha efectiva, responsable, observaciones y fotos.</p></div></section>
+ <div class="card" style="margin-bottom:14px"><h3>Cumplimiento de ${MESL[+mo.slice(5)-1]}: ${pct}%</h3><p class="small muted" style="margin:4px 0 8px">${okM.length} servicios realizados de ${inM.length} programados hasta hoy · ${V.filter(v=>v.p.emerg&&v.date.slice(0,7)===mo).length} emergencia(s) atendida(s) en el mes</p><div class="bars">${byC.map(([c,o,a])=>`<div><span>${esc(c)}</span><span class="b"><i style="width:${a?Math.round(o*100/a):0}%"></i></span><span class="small">${o} de ${a}</span></div>`).join('')}</div></div>
+ <div class="filters" style="grid-template-columns:repeat(2,minmax(0,1fr))"><label>Cliente<select data-hf="cli">${opt('','Todos',H.cli)}${S.clients.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(c=>opt(c.id,c.n,H.cli)).join('')}</select></label><label>Sede<select data-hf="sede">${opt('','Todas',H.sede)}${sedes.map(s=>opt(s.id,sedeName(s.id),H.sede)).join('')}</select></label></div>
+ ${pend.length?`<div class="warn" style="margin-bottom:10px">${pend.length} visita(s) vencida(s) pendiente(s) de registrar en esta selección.</div>`:''}
+ ${L.length?`<table class="stack"><thead><tr><th>Fecha efectiva</th><th>Cliente y sede</th><th>Servicio</th><th>Responsable</th><th>Resultado</th><th></th></tr></thead><tbody>${L.slice(0,120).map(v=>`<tr><td>${esc(fd(v.ov.done?.date||v.date))}</td><td>${esc(sedeName(v.p.s))}</td><td>${esc(svOf(v.p.sv).n)}</td><td>${esc(v.ov.done?.resp||v.p.resp)}</td><td>${pill(v.st)}<br><span class="small muted">${esc(v.ov.done?.obs||v.ov.reason||'')}</span>${v.ov.done?.photo?'<br><span class="small">Con foto · evidencia simulada</span>':''}</td><td><button class="btn sm" data-a="visit" data-id="${esc(v.id)}">Ver</button></td></tr>`).join('')}</tbody></table>`:`<div class="empty">Todavía no hay servicios registrados para esta selección.</div>`}`}
+
+/* ---------- Vista: Flota ---------- */
+function vFleet(){const order=['Vencido','En taller','Fuera de servicio','Mantenimiento próximo','Disponible'];
+ const us=S.units.slice().sort((a,b)=>order.indexOf(unitSt(a))-order.indexOf(unitSt(b)));
+ return`<section class="hero"><div><h1>Mantenimiento de flota</h1><p>Fichas de cada unidad con su próximo vencimiento por fecha, kilometraje u horas de operación. Si una unidad está en taller o fuera de servicio, la agenda avisa al asignarla.</p></div></section>
+ <div class="note">Registros locales de ejemplo: placas, kilometraje e intervalos son ficticios y editables según el manual de cada equipo y el criterio del taller. Cuando exista el Panel de órdenes de trabajo con «Flota y taller», esta vista puede mostrar sus vencimientos. <button class="btn sm" disabled title="No conectado en esta demo">Panel de órdenes (no conectado)</button></div>
+ <div class="kpis">${order.map(st=>[st,S.units.filter(u=>unitSt(u)===st).length]).filter(([st,n])=>st!=='Fuera de servicio'||n).map(([st,n])=>`<div class="kpi" style="cursor:default"><b>${n}</b><span>${st}</span></div>`).join('')}</div>
+ <div class="cards">${us.map(u=>{const st=unitSt(u),first=u.tasks.map(t=>({t,d:taskDue(u,t)})).sort((a,b)=>a.d.est-b.d.est)[0];return`<button class="card unit" data-a="unit" data-id="${u.id}"><div class="chips">${upill(st)}<span class="chip">${esc(u.type)}</span></div><div class="bigc">${esc(u.code)}</div><p class="small muted" style="margin:4px 0">${esc(u.model)} · placa ${esc(u.plate)} (ficticia)<br>${num(u.km)} km${u.hDay?` · ${num(u.h)} h de operación`:''} · ${esc(u.resp)}</p>${st==='En taller'?`<p class="small" style="margin:6px 0 0"><b>En taller desde ${esc(fd(u.taller.in))}</b>, salida prevista ${esc(fd(u.taller.plan))}</p>`:first?`<p class="small" style="margin:6px 0 0">Vence primero: <b>${esc(first.t.name)}</b> · ${esc(first.d.txt)} (por ${esc(first.d.by)})</p>`:''}</button>`}).join('')}</div>`}
+function openUnit(id){const u=unitOf(id);if(!u)return;const st=unitSt(u);const ts=u.tasks.map(t=>({t,d:taskDue(u,t)})).sort((a,b)=>a.d.est-b.d.est);const first=ts[0];
+ const plans=S.plans.filter(p=>p.unit===u.id&&!p.until&&!paused(p));
+ modal(`Ficha de ${u.code}`,`<div class="chips">${upill(st)}<span class="chip">${esc(u.type)}</span><span class="chip">Placa ${esc(u.plate)} (ficticia)</span></div>
+ <dl class="kv"><dt>Marca y modelo</dt><dd>${esc(u.model)} (ejemplo)</dd><dt>Kilometraje</dt><dd>${num(u.km)} km</dd>${u.hDay?`<dt>Horas de operación</dt><dd>${num(u.h)} h</dd>`:''}<dt>Responsable</dt><dd>${esc(u.resp)}</dd><dt>Última intervención</dt><dd>${u.log.length?esc(fd(u.log[u.log.length-1].date)+' · '+u.log[u.log.length-1].tasks.join(', ')):'—'}</dd><dt>Vence primero</dt><dd><b>${esc(first.t.name)}</b> · ${esc(first.d.txt)} (por ${esc(first.d.by)})</dd><dt>Planes asignados</dt><dd>${plans.length} plan(es) activos</dd></dl>
+ ${u.taller&&!u.taller.out?`<div class="card" style="margin:10px 0;border-color:#d9660b"><h3>En taller</h3><dl class="kv"><dt>Diagnóstico</dt><dd>${esc(u.taller.diag)}</dd><dt>Repuestos</dt><dd>${esc(u.taller.rep||'—')}</dd><dt>Entrada</dt><dd>${esc(fd(u.taller.in))}</dd><dt>Salida prevista</dt><dd>${esc(fd(u.taller.plan))}</dd></dl>${u.taller.photo?`<div class="ph" style="aspect-ratio:auto"><img class="ev-photo" src="${esc(u.taller.photo)}" alt="Foto del taller"><span class="tag">Evidencia simulada</span></div>`:''}<div class="fact"><button class="btn pri" data-a="liberar" data-id="${u.id}">Registrar liberación de la unidad</button></div></div>`:''}
+ <div class="actgrid"><button class="btn pri" data-a="interv" data-id="${u.id}">Registrar intervención</button>${u.taller&&!u.taller.out?'':`<button class="btn" data-a="taller" data-id="${u.id}">Ingresar a taller</button>`}<button class="btn" data-a="oos" data-id="${u.id}">${u.oos?'Volver a poner en servicio':'Marcar fuera de servicio'}</button><button class="btn" data-a="intervals" data-id="${u.id}">Editar intervalos</button></div>
+ ${AREAS.map(a=>{const xs=ts.filter(x=>x.t.area===a);if(!xs.length)return'';return`<h3 class="grp">${esc(a)}</h3>${xs.map(({t,d})=>`<div class="tk"><div><b>${esc(t.name)}</b><br><span class="small muted">Cada ${[t.days?t.days+' días':'',t.km?num(t.km)+' km':'',t.h?num(t.h)+' h':''].filter(Boolean).join(' o ')} · último: ${esc(fd(t.last.date))}</span></div><div class="small">Vence: <b>${esc(d.txt)}</b><br><span class="muted">por ${esc(d.by)}</span></div><div>${upill(d.st)}</div></div>`).join('')}`}).join('')}
+ <h3 class="grp">Taller y retorno al servicio</h3>${u.log.length?u.log.slice().reverse().map(l=>`<div class="tk"><div><b>${esc(fd(l.date))}</b> · ${esc(l.tasks.join(', '))}<br><span class="small muted">${esc(l.obs||'')}</span></div><div class="small">${num(l.km)} km${l.h?` · ${num(l.h)} h`:''}<br>${esc(l.resp)}</div><div>${l.photo?'<span class="pill st-ta">Con foto</span>':''}</div></div>`).join(''):'<p class="muted">Sin intervenciones registradas.</p>'}`,true)}
+
+/* ---------- Vista: Servicios ---------- */
+function vSvc(){return`<section class="hero"><div><h1>Servicios de VENSERVI</h1><p>Alquiler de camiones Vactor y de vacío, limpieza industrial y mantenimiento de sistemas de drenaje. Atención de emergencias las 24 horas.</p></div><div class="acts"><span class="chip">venservi@hotmail.com</span><span class="chip">(0212) 429 11 66</span><span class="chip">(0414) 180 84 35</span></div></section>
+ <div class="note">Fuentes: flyer de servicios de VENSERVI, <a href="${SRC.web}" target="_blank" rel="noopener">venservi.com</a> e <a href="${SRC.ig}" target="_blank" rel="noopener">Instagram @venservi.vactor</a>. Las fotos marcadas como «Foto de referencia de VENSERVI» vienen del material publicado por la empresa; ninguna se usa como evidencia de una visita de la demo. Frecuencia, duración y equipo se ajustan según cada trabajo.</div>
+ <div class="cards">${SV.map(s=>{const ph=S.photos[s.id]||s.ph;return`<div class="card svc"><div class="ph">${ph?`<img src="${esc(ph)}" alt="${esc(s.phd||s.n)}"><span class="tag">Foto de referencia de VENSERVI</span>`:'Foto pendiente'}</div><h3>${esc(s.n)}</h3><p style="margin:0 0 6px">${esc(s.d)}</p><p class="small muted" style="margin:0">Tipo de sede: ${esc(s.t)}<br>Equipo: ${esc(s.e)}<br>Fuente: ${esc(s.src)}</p><div class="acts" style="margin-top:10px"><label class="btn sm" style="flex-direction:row;color:var(--ink)">${ph?'Cambiar foto':'Agregar foto'}<input type="file" accept="image/*" data-svph="${s.id}" hidden></label>${S.photos[s.id]?`<button class="btn sm" data-a="rmph" data-id="${s.id}">Quitar foto</button>`:''}</div></div>`}).join('')}</div>`}
+/* ---------- Modales y formularios ---------- */
+function modal(title,body,wide){const md=$('#md');md.innerHTML=`<div class="mbox ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="mhead"><h2>${esc(title)}</h2><button class="x" data-a="close" aria-label="Cerrar">×</button></div><div class="mbody">${body}</div></div>`;md.hidden=false;document.body.classList.add('lock');md.querySelector('.x').focus()}
+function closeM(){const md=$('#md');md.hidden=true;md.innerHTML='';document.body.classList.remove('lock')}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2800)}
+function ask(msg,fn){modal('Confirmar',`<p>${esc(msg)}</p><div class="fact"><button class="btn" data-a="close">No</button><button class="btn pri" id="askyes">Sí, continuar</button></div>`);$('#askyes').onclick=()=>{closeM();fn()}}
+function readImg(file,max=900){return new Promise((res,rej)=>{if(!file||!file.size)return res(null);const r=new FileReader();r.onerror=rej;r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.72))};im.onerror=rej;im.src=r.result};r.readAsDataURL(file)})}
+const fid=()=>'x'+(S.n++);
+const sedeFields=()=>`<label class="full">Nombre de la sede<input name="sn" required placeholder="Ej.: Sede principal"></label><label class="full">Dirección<input name="dir" required></label><label>Municipio<select name="mun">${MUN.map(m=>opt(m,m,'Chacao')).join('')}</select></label><label>Contacto<input name="ct" required></label><label>Teléfono<input name="tel" required inputmode="tel"></label><label>Horario permitido<input name="hor" required placeholder="Ej.: 06:00 a 10:00"></label><label class="full">Instrucciones de acceso para el camión<textarea name="acc"></textarea></label>`;
+function formPlan(p,sel){modal(p?'Editar plan':'Nuevo plan',`<form data-f="plan" data-id="${p?p.id:''}" class="fgrid">
+ ${p?`<p class="full note" style="margin:0">Para mover fechas usa «Reprogramar solo esta visita» o «Cambiar fechas futuras» desde una visita.</p>`:''}
+ <label class="full">Cliente y sede<select name="s" required ${p?'disabled':''}>${sedeOpts(p?p.s:sel)}</select></label>
+ <label class="full">Servicio<select name="sv">${SV.map(s=>opt(s.id,s.n,p?.sv)).join('')}</select></label>
+ ${p?'':`<label>Primera fecha<input type="date" name="start" required value="${T}"></label>`}
+ <label>Horario preferido<input type="time" name="time" required value="${p?.time||'08:00'}"></label>
+ ${p?'':`<label>Frecuencia<select name="f">${Object.entries(FREQ).map(([k,[l]])=>opt(k,l,'mensual')).join('')}</select></label><label>Cada cuántos días (personalizada)<input type="number" name="cada" min="1" max="365" value="30"></label>`}
+ <label>Responsable<select name="resp">${CUAD.map(c=>opt(c,c,p?.resp)).join('')}</select></label>
+ <label>Unidad asignada<select name="unit">${unitOpts(p?.unit)}</select></label>
+ <div class="warn full" data-uw>${p?esc(unitWarn(p.unit)):''}</div>
+ <label>Días antes para contactar<input type="number" name="dc" min="0" max="30" value="${p?.dc??2}"></label>
+ <label class="full">Notas del plan<textarea name="notes">${esc(p?.notes||'')}</textarea></label>
+ <div class="full fact"><button type="button" class="btn" data-a="close">Cancelar</button><button class="btn pri">Guardar plan</button></div></form>`)}
+function routeText(d,c){const L=V.filter(v=>v.date===d&&v.p.resp===c&&v.st!=='Cancelada');if(!L.length)return'';return`VENSERVI · Hoja de ruta ${c}\n${dow(d)} ${fd(d)}\n\n`+L.map((v,i)=>{const s=sedeOf(v.p.s),u=unitOf(v.p.unit);return`${i+1}. ${v.time} · ${cliOf(s.c).n} (${s.n})${v.p.emerg?' · EMERGENCIA':''}\n   ${svOf(v.p.sv).n}${u?' · '+u.code:''}\n   ${s.dir}, ${s.mun}\n   Contacto: ${s.ct} · ${s.tel}\n   Horario: ${s.hor} · Acceso: ${s.acc}`}).join('\n\n')}
+function openRuta(d){d=d||T;modal('Hoja de ruta por cuadrilla',`<div class="fgrid"><label>Fecha<input type="date" data-rd value="${d}"></label><p class="small muted" style="margin:0;align-self:end">Copia la hoja de cada cuadrilla y envíala por WhatsApp al jefe de cuadrilla.</p></div>${CUAD.map(c=>{const t=routeText(d,c);return`<h3 class="grp">${esc(c)}</h3>${t?`<textarea class="msg" readonly data-rt="${esc(c)}" style="min-height:160px">${esc(t)}</textarea><div class="fact" style="margin-top:6px"><button class="btn sm" data-a="copyruta" data-c="${esc(c)}">Copiar hoja de ruta</button></div>`:'<p class="muted small">Sin visitas este día.</p>'}`}).join('')}`,true)}
+async function copyTxt(t,el){try{await navigator.clipboard.writeText(t);toast('Texto copiado. Pégalo en WhatsApp.')}catch(e){if(el){el.focus();el.select()}toast('Selecciona el texto y cópialo manualmente.')}}
+const SUB={
+ emerg(d){const p={id:'pe'+fid(),s:d.s,sv:d.sv,start:d.date,time:d.time,f:'unica',emerg:true,cada:0,resp:d.resp,unit:d.unit,dc:0,notes:'Emergencia: '+d.notes.trim(),until:null,pr:[]};S.plans.push(p);S.ov[p.id+'@'+p.start]={st:'Confirmada',contacted:stamp(),confirmed:stamp()};save();closeM();Object.assign(Fl,{quick:'',mode:'lista',scope:'prox'});const id=p.id+'@'+p.start;if(route()!=='agenda'){location.hash='agenda';setTimeout(()=>openVisit(id),60)}else{render();openVisit(id)}toast('Emergencia registrada y asignada a '+d.resp+'.')},
+ plan(d,id){if(id){const p=planOf(id);Object.assign(p,{sv:d.sv,time:d.time,resp:d.resp,unit:d.unit,dc:Math.max(0,+d.dc||0),notes:d.notes.trim()});save();closeM();render();toast('Plan actualizado.');return}
+  const p={id:'p'+fid(),s:d.s,sv:d.sv,start:d.start,time:d.time,f:d.f,cada:Math.max(1,+d.cada||30),resp:d.resp,unit:d.unit,dc:Math.max(0,+d.dc||0),notes:d.notes.trim(),until:null,pr:[]};
+  S.plans.push(p);save();closeM();render();toast(`Plan creado: primera visita el ${fd(p.start)}.`)},
+ client(d){const n=d.n.trim();if(S.clients.some(c=>c.n.toLowerCase()===n.toLowerCase())){toast('Ese cliente ya existe; agrega una sede desde su ficha.');return}
+  const c={id:'c'+fid(),n,r:d.r};const s={id:'s'+fid(),c:c.id,n:d.sn.trim(),dir:d.dir.trim(),mun:d.mun,ct:d.ct.trim(),tel:d.tel.trim(),hor:d.hor.trim(),acc:d.acc.trim()};
+  S.clients.push(c);S.sedes.push(s);save();render();toast('Cliente guardado. Ahora crea su plan.');formPlan(null,s.id)},
+ sede(d,id){const s={id:'s'+fid(),c:id,n:d.sn.trim(),dir:d.dir.trim(),mun:d.mun,ct:d.ct.trim(),tel:d.tel.trim(),hor:d.hor.trim(),acc:d.acc.trim()};S.sedes.push(s);save();render();toast('Sede agregada.');formPlan(null,s.id)},
+ resched(d,id){const ov=S.ov[id]=S.ov[id]||{};Object.assign(ov,{st:'Reprogramada',date:d.date,time:d.time,note:d.note.trim()||'Reprogramada.',confirmed:null});save();closeM();render();toast(`Visita movida al ${fd(d.date)}. Las demás visitas del plan no cambian.`)},
+ future(d,id){const v=V.find(x=>x.id===id),p=v.p;const np={...p,id:'p'+fid(),start:d.date,time:d.time,until:null,pr:[]};p.until=v.o;S.plans.push(np);save();closeM();render();toast(`Desde el ${fd(d.date)} el plan sigue con las nuevas fechas.`)},
+ async done(d,id,f){const ph=await readImg(f.querySelector('input[type=file]')?.files[0]);const ov=S.ov[id]=S.ov[id]||{};Object.assign(ov,{st:'Realizada',done:{date:d.date,resp:d.resp,unit:d.unit,obs:d.obs.trim(),photo:ph,at:stamp()}});if(!ov.contacted)ov.contacted=stamp();if(!save()){ov.done.photo=null;save()}closeM();render();toast('Servicio registrado en el historial de la sede.')},
+ cancel(d,id){const ov=S.ov[id]=S.ov[id]||{};Object.assign(ov,{st:'Cancelada',reason:d.reason.trim()||'Cancelada.',cancelAt:stamp()});save();closeM();render();toast('Visita cancelada. La siguiente del plan se mantiene.')},
+ async interv(d,id,f){const u=unitOf(id);const sel=new FormData(f).getAll('tk');if(!sel.length){toast('Marca al menos una tarea.');return}const km=Math.max(u.km,+d.km||u.km),h=Math.max(u.h,+d.h||u.h);
+  const ph=await readImg(f.querySelector('input[type=file]')?.files[0]);u.km=km;u.h=h;const names=[];for(const t of u.tasks)if(sel.includes(t.id)){t.last={date:d.date,km,h};names.push(t.name)}
+  u.log.push({date:d.date,tasks:names,km,h,resp:d.resp.trim(),obs:d.obs.trim(),photo:ph});if(!save()){u.log[u.log.length-1].photo=null;save()}render();toast('Intervención registrada.');openUnit(id)},
+ async taller(d,id,f){const u=unitOf(id);const ph=await readImg(f.querySelector('input[type=file]')?.files[0]);u.taller={diag:d.diag.trim(),rep:d.rep.trim(),in:d.in,plan:d.plan,out:null,photo:ph};if(!save()){u.taller.photo=null;save()}render();toast(`${u.code} ingresó a taller.`);openUnit(id)},
+ liberar(d,id){const u=unitOf(id);u.log.push({date:d.date,tasks:['Liberación del taller: '+u.taller.diag],km:u.km,h:u.h,resp:d.resp.trim(),obs:d.obs.trim(),photo:u.taller.photo});u.taller.out=d.date;save();render();toast(`${u.code} volvió al servicio.`);openUnit(id)},
+ intervals(d,id){const u=unitOf(id);for(const t of u.tasks){t.days=Math.max(0,+d['d_'+t.id]||0);t.km=Math.max(0,+d['k_'+t.id]||0);if(u.hDay)t.h=Math.max(0,+d['h_'+t.id]||0)}save();render();toast('Intervalos actualizados.');openUnit(id)}};
+
+/* ---------- Acciones ---------- */
+const A={
+ nav:b=>go(b.dataset.v),close:()=>closeM(),
+ emerg:()=>{const n=nowParts();modal('Registrar emergencia 24 h',`<form data-f="emerg" class="fgrid"><label class="full">Cliente y sede<select name="s" required>${sedeOpts('')}</select></label><label class="full">Servicio<select name="sv">${SV.map(x=>opt(x.id,x.n,'v4')).join('')}</select></label><label>Fecha<input type="date" name="date" required value="${n.d}"></label><label>Hora de atención<input type="time" name="time" required value="${n.t}"></label><label>Cuadrilla<select name="resp">${CUAD.map(c=>opt(c,c)).join('')}</select></label><label>Unidad<select name="unit">${unitOpts('')}</select></label><div class="warn full" data-uw></div><label class="full">Qué ocurrió<textarea name="notes" required placeholder="Ej.: tanquilla desbordada en el estacionamiento"></textarea></label><p class="full small muted" style="margin:0">Si el cliente no está registrado, créalo primero en «+ Nuevo cliente».</p><div class="full fact"><button type="button" class="btn" data-a="close">Cancelar</button><button class="btn emer">Registrar y asignar</button></div></form>`)},
+ ruta:()=>openRuta(T),
+ copyruta:b=>{const el=document.querySelector(`[data-rt="${CSS.escape(b.dataset.c)}"]`);copyTxt(el.value,el)},
+ const:b=>{const v=V.find(x=>x.id===b.dataset.id),s=sedeOf(v.p.s),d=v.ov.done,u=unitOf(d.unit);copyTxt(`VENSERVI · Constancia de servicio\nCliente: ${cliOf(s.c).n} · ${s.n}\nServicio: ${svOf(v.p.sv).n}\nFecha: ${fd(d.date)}\nCuadrilla: ${d.resp}${u?' · Unidad '+u.code:''}\nObservaciones: ${d.obs||'Sin novedad.'}\nPróxima visita prevista: ${nextOf(v)}\n\nGracias por confiar en VENSERVI. Emergencias 24 h: (0414) 180 84 35.`)},
+ quick:b=>{Fl.quick=Fl.quick===b.dataset.q?'':b.dataset.q;Fl.mode='lista';Fl.lim=40;render()},
+ mode:b=>{Fl.mode=b.dataset.m;render()},scope:b=>{Fl.scope=b.dataset.s;Fl.quick='';Fl.lim=40;render()},tipo:b=>{Fl.tipo=b.dataset.t;render()},
+ more:()=>{Fl.lim+=40;render()},
+ calmv:b=>{const n=+b.dataset.n;if(!n)Fl.month=T.slice(0,7);else Fl.month=addM(Fl.month+'-01',n).slice(0,7);render()},
+ calday:b=>{const d=b.dataset.d;const L=filtered().filter(v=>v.date===d);modal(`Visitas del ${fd(d)}`,L.map(row).join('')||'<p class="muted">Solo hay eventos de taller este día.</p>',true)},
+ visit:b=>openVisit(b.dataset.id),
+ copy:async b=>{const v=V.find(x=>x.id===b.dataset.id);const txt=$('#wmsg')?.value||msgFor(v);try{await navigator.clipboard.writeText(txt);toast('Mensaje copiado. Pégalo en WhatsApp.')}catch(e){const ta=$('#wmsg');if(ta){ta.focus();ta.select()}else{modal('Mensaje para WhatsApp',`<textarea class="msg" id="wmsg">${esc(txt)}</textarea>`);$('#wmsg').select()}toast('Selecciona el texto y cópialo manualmente.')}},
+ contact:b=>{const id=b.dataset.id,ov=S.ov[id]=S.ov[id]||{};ov.contacted=stamp();save();render();toast('Contacto registrado.');if(!$('#md').hidden)openVisit(id)},
+ confirm:b=>{const id=b.dataset.id,ov=S.ov[id]=S.ov[id]||{};ov.st='Confirmada';ov.confirmed=stamp();if(!ov.contacted)ov.contacted=ov.confirmed;save();render();toast('Visita confirmada.');if(!$('#md').hidden)openVisit(id)},
+ resched:b=>{const v=V.find(x=>x.id===b.dataset.id);modal('Reprogramar solo esta visita',`<form data-f="resched" data-id="${esc(v.id)}" class="fgrid"><p class="full small muted" style="margin:0">Se mueve únicamente esta visita. La siguiente del plan conserva su fecha (${esc(nextOf(v))}).</p><label>Nueva fecha<input type="date" name="date" required value="${v.date<T?T:v.date}"></label><label>Hora<input type="time" name="time" required value="${v.time}"></label><label class="full">Motivo<input name="note" placeholder="Ej.: el cliente pidió otro día"></label><div class="full fact"><button type="button" class="btn" data-a="visit" data-id="${esc(v.id)}">Volver</button><button class="btn pri">Reprogramar</button></div></form>`)},
+ future:b=>{const v=V.find(x=>x.id===b.dataset.id);modal('Cambiar fechas futuras',`<form data-f="future" data-id="${esc(v.id)}" class="fgrid"><p class="full small muted" style="margin:0">Esta visita y todas las siguientes del plan (${esc(freqL(v.p))}) se recalculan desde la nueva fecha. Las visitas anteriores quedan en el historial.</p><label>Nueva fecha<input type="date" name="date" required value="${v.date<T?T:v.date}"></label><label>Hora<input type="time" name="time" required value="${v.time}"></label><div class="full fact"><button type="button" class="btn" data-a="visit" data-id="${esc(v.id)}">Volver</button><button class="btn pri">Cambiar fechas futuras</button></div></form>`)},
+ done:b=>{const v=V.find(x=>x.id===b.dataset.id);modal('Registrar servicio realizado',`<form data-f="done" data-id="${esc(v.id)}" class="fgrid"><label>Fecha efectiva<input type="date" name="date" required value="${v.date>T?T:v.date}"></label><label>Responsable<select name="resp">${CUAD.map(c=>opt(c,c,v.p.resp)).join('')}</select></label><label class="full">Unidad utilizada<select name="unit">${unitOpts(v.p.unit)}</select></label><div class="warn full" data-uw>${esc(unitWarn(v.p.unit))}</div><label class="full">Observaciones<textarea name="obs" placeholder="Ej.: se retiraron 3 m³ de lodo; drenaje operativo"></textarea></label><label class="full">Foto (opcional, se mostrará como «Evidencia simulada»)<input type="file" name="foto" accept="image/*"></label><p class="full small muted" style="margin:0">Próxima visita del plan: <b>${esc(nextOf(v))}</b></p><div class="full fact"><button type="button" class="btn" data-a="visit" data-id="${esc(v.id)}">Volver</button><button class="btn pri">Guardar servicio</button></div></form>`)},
+ cancel:b=>{const v=V.find(x=>x.id===b.dataset.id);modal('Cancelar visita',`<form data-f="cancel" data-id="${esc(v.id)}" class="fgrid"><label class="full">Motivo<input name="reason" required placeholder="Ej.: el cliente suspendió la visita"></label><p class="full small muted" style="margin:0">El plan sigue activo; la próxima visita es ${esc(nextOf(v))}.</p><div class="full fact"><button type="button" class="btn" data-a="visit" data-id="${esc(v.id)}">Volver</button><button class="btn red">Cancelar visita</button></div></form>`)},
+ reopen:b=>{const id=b.dataset.id;ask('¿Reabrir esta visita? Se quitará el registro de servicio o cancelación.',()=>{const ov=S.ov[id]||{};delete ov.done;delete ov.reason;ov.st='Por confirmar';S.ov[id]=ov;save();render();openVisit(id)})},
+ newplan:b=>formPlan(null,b.dataset.id||''),editplan:b=>formPlan(planOf(b.dataset.id)),
+ toggleplan:b=>{const p=planOf(b.dataset.id);if(paused(p)){p.pr.find(r=>!r.to).to=T;toast('Plan reactivado. Las visitas del período en pausa no se generan.')}else{p.pr.push({from:T,to:null});toast('Plan pausado desde hoy.')}save();render()},
+ newclient:()=>modal('Nuevo cliente',`<form data-f="client" class="fgrid"><label class="full">Nombre del cliente<input name="n" required></label><label class="full">Rubro<select name="r">${RUB.map(r=>opt(r,r)).join('')}</select></label><h3 class="full">Primera sede</h3>${sedeFields()}<div class="full fact"><button type="button" class="btn" data-a="close">Cancelar</button><button class="btn pri">Guardar y crear plan</button></div></form>`),
+ newsede:b=>modal(`Nueva sede · ${cliOf(b.dataset.id).n}`,`<form data-f="sede" data-id="${b.dataset.id}" class="fgrid">${sedeFields()}<div class="full fact"><button type="button" class="btn" data-a="close">Cancelar</button><button class="btn pri">Guardar y crear plan</button></div></form>`),
+ hist:b=>{const s=sedeOf(b.dataset.id);H.cli=s.c;H.sede=s.id;closeM();go('historial')},
+ unit:b=>openUnit(b.dataset.id),
+ interv:b=>{const u=unitOf(b.dataset.id);const ts=u.tasks.map(t=>({t,d:taskDue(u,t)}));modal(`Registrar intervención · ${u.code}`,`<form data-f="interv" data-id="${u.id}" class="fgrid"><label>Fecha<input type="date" name="date" required value="${T}"></label><label>Responsable<input name="resp" required value="${esc(u.resp)}"></label><label>Kilometraje actual<input type="number" name="km" min="${u.km}" value="${u.km}"></label>${u.hDay?`<label>Horas de operación<input type="number" name="h" min="${u.h}" value="${u.h}"></label>`:'<span></span>'}
+ <div class="full"><b>Tareas realizadas</b>${AREAS.map(a=>{const xs=ts.filter(x=>x.t.area===a);return xs.length?`<p class="small muted" style="margin:10px 0 4px">${esc(a)}</p>${xs.map(({t,d})=>`<label style="flex-direction:row;align-items:center;gap:8px;font-weight:500;color:var(--ink);min-height:40px"><input type="checkbox" name="tk" value="${t.id}" style="width:22px;min-height:22px" ${d.st!=='Al día'?'checked':''}> ${esc(t.name)} ${d.st!=='Al día'?upill(d.st):''}</label>`).join('')}`:''}).join('')}</div>
+ <label class="full">Observaciones<textarea name="obs"></textarea></label><label class="full">Foto (opcional, «Evidencia simulada»)<input type="file" accept="image/*"></label><div class="full fact"><button type="button" class="btn" data-a="unit" data-id="${u.id}">Volver</button><button class="btn pri">Guardar intervención</button></div></form>`,true)},
+ taller:b=>{const u=unitOf(b.dataset.id);modal(`Ingresar ${u.code} a taller`,`<form data-f="taller" data-id="${u.id}" class="fgrid"><label class="full">Diagnóstico<textarea name="diag" required></textarea></label><label class="full">Repuestos<input name="rep"></label><label>Fecha de entrada<input type="date" name="in" required value="${T}"></label><label>Salida prevista<input type="date" name="plan" required value="${addD(T,3)}"></label><label class="full">Foto (opcional, «Evidencia simulada»)<input type="file" accept="image/*"></label><div class="full fact"><button type="button" class="btn" data-a="unit" data-id="${u.id}">Volver</button><button class="btn pri">Ingresar a taller</button></div></form>`)},
+ liberar:b=>{const u=unitOf(b.dataset.id);modal(`Liberar ${u.code}`,`<form data-f="liberar" data-id="${u.id}" class="fgrid"><label>Fecha de liberación<input type="date" name="date" required value="${T}"></label><label>Responsable<input name="resp" required value="${esc(u.resp)}"></label><label class="full">Observaciones<textarea name="obs" placeholder="Ej.: prueba de vacío correcta"></textarea></label><div class="full fact"><button type="button" class="btn" data-a="unit" data-id="${u.id}">Volver</button><button class="btn pri">Liberar unidad</button></div></form>`)},
+ oos:b=>{const u=unitOf(b.dataset.id);u.oos=!u.oos;save();render();toast(u.oos?`${u.code} fuera de servicio.`:`${u.code} disponible.`);openUnit(u.id)},
+ intervals:b=>{const u=unitOf(b.dataset.id);modal(`Intervalos de ${u.code}`,`<form data-f="intervals" data-id="${u.id}"><p class="small muted">Valores de ejemplo. Ajusta según el manual del equipo y el criterio del taller (0 = no aplica).</p>${u.tasks.map(t=>`<div class="tk"><b>${esc(t.name)}</b><div class="fgrid" style="grid-template-columns:repeat(${u.hDay?3:2},minmax(0,1fr))"><label>Días<input type="number" min="0" name="d_${t.id}" value="${t.days}"></label><label>Km<input type="number" min="0" name="k_${t.id}" value="${t.km}"></label>${u.hDay?`<label>Horas<input type="number" min="0" name="h_${t.id}" value="${t.h}"></label>`:''}</div><span></span></div>`).join('')}<div class="fact" style="margin-top:12px"><button type="button" class="btn" data-a="unit" data-id="${u.id}">Volver</button><button class="btn pri">Guardar intervalos</button></div></form>`,true)},
+ rmph:b=>{delete S.photos[b.dataset.id];save();render()},
+ reset:()=>ask('¿Restablecer la demo? Se borrarán los cambios hechos en este navegador.',()=>{S=seed();save();Object.assign(Fl,{cli:'',sede:'',sv:'',resp:'',st:'',scope:'prox',quick:'',mode:'lista',tipo:'todo',month:T.slice(0,7),lim:40});H.cli='';H.sede='';render();toast('Demo restablecida.')})};
+document.addEventListener('click',e=>{const md=$('#md');if(e.target===md){closeM();return}const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const f=A[b.dataset.a];if(f){e.preventDefault();f(b)}});
+document.addEventListener('change',async e=>{const t=e.target;
+ if(t.dataset.flt){Fl.fopen=true;Fl[t.dataset.flt]=t.value;if(t.dataset.flt==='cli')Fl.sede='';Fl.lim=40;render();return}
+ if(t.dataset.rd!==undefined&&t.closest('#md')){openRuta(t.value||T);return}
+ if(t.dataset.hf){H[t.dataset.hf]=t.value;if(t.dataset.hf==='cli')H.sede='';render();return}
+ if(t.name==='unit'&&t.closest('#md')){const w=t.closest('form').querySelector('[data-uw]');if(w)w.textContent=unitWarn(t.value);return}
+ if(t.dataset.svph){try{const ph=await readImg(t.files[0],1000);if(ph){S.photos[t.dataset.svph]=ph;if(!save())delete S.photos[t.dataset.svph];render()}}catch(err){toast('No se pudo leer la imagen.')}}});
+document.addEventListener('submit',async e=>{const f=e.target.closest('form[data-f]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));const btn=f.querySelector('button:not([type=button])');if(btn)btn.disabled=true;try{await SUB[f.dataset.f](d,f.dataset.id,f)}catch(err){console.error(err);toast('No se pudo guardar. Revisa los datos.');if(btn)btn.disabled=false}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#md').hidden)closeM()});
+window.addEventListener('hashchange',()=>{closeM();render();window.scrollTo(0,0)});
+$('#logo').src=LOGO;
+S=load();save();render();
+}
+</script>
+</body>
+</html>
